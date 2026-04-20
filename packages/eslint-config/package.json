@@ -1,0 +1,11 @@
+{
+  "name": "@repo/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./next-js": "./next-js.js",
+    "./package.json": "./package.json"
+  }
+}
+

@@ -2,6 +2,7 @@
   "name": "echojs",
   "private": true,
   "scripts": {
+    "demo:jsx": "bun run --cwd apps/echojs-demo dev",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

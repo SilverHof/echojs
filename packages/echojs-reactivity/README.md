@@ -1,159 +1,203 @@
-# Turborepo starter
+# `echojs-reactivity`
 
-This Turborepo starter is maintained by the Turborepo core team.
+Минималистичная **строгая** реактивность для Echo JS, построенная поверх `alien-signals`, но с **собственным surface API**.
 
-## Using this example
+## Зачем отдельный API поверх `alien-signals`
 
-Run the following command:
+`alien-signals` — быстрый низкоуровневый движок, но его публичный API (callable-сигналы, `trigger()` и т.д.) не совпадает с тем, как удобно и безопасно писать Echo-код.
 
-```sh
-npx create-turbo@latest
+Цели этого пакета:
+
+- **объектный API**, который проще читать и сложнее использовать неправильно
+- **строгое разделение** writable / readonly
+- **запрет случайных мутаций** через `.value()`
+- **изолировать движок**: сегодня `alien-signals` внутри, завтра можно заменить engine без слома API
+
+## Установка
+
+Внутри монорепы:
+
+```bash
+bun add echojs-reactivity
 ```
 
-## What's inside?
+## Примеры
 
-This Turborepo includes the following packages/apps:
+Живые примеры лежат в `examples/`:
 
-### Apps and Packages
+- `examples/basic.ts`
+- `examples/object-state.ts`
+- `examples/peek-and-subscribe.ts`
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Быстрый старт
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+```ts
+import { signal, computed, effect } from "echojs-reactivity";
 
-### Utilities
+const $count = signal(0);
+const $double = computed(() => $count.value() * 2);
 
-This Turborepo has some additional tools already setup for you:
+effect(() => {
+  console.log($double.value());
+});
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+$count.set(2);
+$count.update((v) => v + 1);
 ```
 
-Without global `turbo`, use your package manager:
+## Документация / API
 
-```sh
-cd my-turborepo
-npx turbo build
-bun dlx turbo build
-bun exec turbo build
+## Модель исполнения (важно)
+
+- **`effect()` запускается сразу** (синхронно) и затем перезапускается при изменении зависимостей.
+- **`computed()` ленивый**: он пересчитывается по требованию (когда его читают) и инвалидируется при изменении зависимостей.
+- **`batch()`** откладывает обработку реакций/эффектов до конца батча.
+
+### `signal(initial)`
+
+Создаёт writable signal (объект).
+
+- **читать**: `.value()` (с трекингом)
+- **читать без трекинга**: `.peek()`
+- **писать**: `.set(next)`
+- **обновлять от предыдущего**: `.update(prev => next)`
+- **подписаться**: `.subscribe(fn)` → `unsubscribe`
+- **readonly facade**: `.readonly()`
+
+#### Контракт
+
+- `.value()` и `.peek()` возвращают текущее значение.
+- `.value()` **участвует** в трекинге зависимостей.
+- `.peek()` **не участвует** в трекинге (полезно внутри эффектов, чтобы не подписываться).
+- `.set(next)` и `.update(fn)` — единственные поддерживаемые способы записи.
+- `.subscribe(fn)` вызывает `fn` **только когда значение реально изменилось** (по `Object.is`).
+- `.subscribe(fn)` **не вызывает** `fn` сразу при подписке (только на изменения).
+
+#### Ошибки
+
+- `signal()` без аргумента бросает `TypeError`.
+
+### `computed(() => value)`
+
+Создаёт readonly/computed signal (объект) с методами:
+
+- `.value()`
+- `.peek()`
+- `.subscribe(fn)`
+
+#### Ошибки
+
+- `computed(getter)` бросает `TypeError`, если `getter` не функция.
+
+### `effect(fn)`
+
+Запускает эффект. Возвращает disposer:
+
+```ts
+const stop = effect(() => {
+  console.log("count:", $count.value());
+});
+
+stop();
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+#### Ошибки
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+- `effect(fn)` бросает `TypeError`, если `fn` не функция.
 
-```sh
-turbo build --filter=docs
+### `batch(fn)`
+
+Группирует несколько обновлений так, чтобы реакции/эффекты обработались один раз после батча:
+
+```ts
+batch(() => {
+  $a.set(1);
+  $b.set(2);
+});
 ```
 
-Without global `turbo`:
+#### Ошибки
 
-```sh
-npx turbo build --filter=docs
-bun exec turbo build --filter=docs
-bun exec turbo build --filter=docs
+- `batch(fn)` бросает `TypeError`, если `fn` не функция.
+
+### `scope(fn)`
+
+Запускает effect-scope. Возвращает disposer. Всё, что создано внутри `scope`, будет очищено на `stopScope()`:
+
+```ts
+const stopScope = scope(() => {
+  effect(() => {
+    console.log($count.value());
+  });
+});
+
+stopScope();
 ```
 
-### Develop
+#### Ошибки
 
-To develop all apps and packages, run the following command:
+- `scope(fn)` бросает `TypeError`, если `fn` не функция.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### `readonly($signal)`
 
-```sh
-cd my-turborepo
-turbo dev
+Возвращает readonly facade (без `.set()`/`.update()`), чтобы нельзя было случайно мутировать состояние.
+
+### `isSignal(x)` / `isReadonlySignal(x)`
+
+Проверки на экземпляры сигналов этого пакета.
+
+## `.value()` и запрет мутаций
+
+Главное правило: **запись только через `.set()`/`.update()`**.
+
+На уровне типов `.value()` для объектов/массивов возвращает `DeepReadonly<T>`, чтобы у вас не появлялся соблазн делать:
+
+```ts
+const $user = signal({ name: "Vova", tags: ["a"] });
+
+const user = $user.value();
+// user.name = "x"      // TS error
+// user.tags.push("b")  // TS error
 ```
 
-Without global `turbo`, use your package manager:
+Правильный способ — immutable update:
 
-```sh
-cd my-turborepo
-npx turbo dev
-bun exec turbo dev
-bun exec turbo dev
+```ts
+const $state = signal({
+  user: { name: "Vova" },
+  tags: ["a"],
+});
+
+$state.update((prev) => ({
+  ...prev,
+  tags: [...prev.tags, "b"],
+}));
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Dev freeze
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+В dev-режиме (когда `NODE_ENV !== "production"`) значения-объекты/массивы, записанные в сигнал, **deep-freeze**-ятся.
 
-```sh
-turbo dev --filter=web
+Это означает, что любые прямые мутации будут падать предсказуемо (обычно `TypeError`), и вы быстро увидите неправильное место в коде.
+
+## Intentionally not implemented (v0)
+
+- **Публичный `trigger()`** — намеренно не экспортируется. Мы не хотим поддерживать паттерн «мутируй руками и потом триггери».
+- **Proxy-based deep mutations / draft API** (`mutate(draft => ...)`, `alien-deepsignals`, и т.п.) — сознательно не входят в core v0.
+
+## FAQ
+
+### Почему `.value()` возвращает `DeepReadonly` для объектов/массивов?
+
+Чтобы не поощрять паттерн “прочитал объект → мутировал поле”. Запись должна происходить через `.set()`/`.update()`, чтобы реактивность была предсказуемой и без `trigger()`.
+
+### Почему `subscribe()` не вызывает callback сразу?
+
+Это намеренный контракт: `subscribe()` — только про **изменения**. Если нужно “сразу и дальше”, делайте:
+
+```ts
+fn();
+const unsub = $sig.subscribe(fn);
 ```
 
-Without global `turbo`:
 
-```sh
-npx turbo dev --filter=web
-bun exec turbo dev --filter=web
-bun exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-bun exec turbo login
-bun exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-bun exec turbo link
-bun exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)

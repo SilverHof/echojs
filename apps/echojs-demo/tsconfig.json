@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../packages/typescript-config/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "echojs-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "echojs-jsx": ["../../packages/echojs-jsx/src/index.ts"],
+      "echojs-jsx/jsx-runtime": ["../../packages/echojs-jsx/src/jsx-runtime.ts"],
+      "echojs-jsx/jsx-dev-runtime": ["../../packages/echojs-jsx/src/jsx-dev-runtime.ts"],
+      "echojs-jsx/jsx": ["../../packages/echojs-jsx/src/jsx.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+}
