@@ -1,0 +1,17 @@
+[
+  "requests",
+  "responses",
+  "errors",
+  "retry",
+  "timeouts",
+  "redirects",
+  "hooks",
+  "adapters",
+  "options",
+  "instances",
+  "testing",
+  "architecture",
+  "core-internals",
+  "limitations"
+]
+

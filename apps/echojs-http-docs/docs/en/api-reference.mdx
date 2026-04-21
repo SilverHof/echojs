@@ -1,0 +1,73 @@
+---
+title: API Reference (manual)
+description: Public API map for @echojs/http (manual version).
+---
+
+> We’ll add an automated reference (TypeDoc) separately. For now, this is a manual “map” of the public API.
+
+## `createHttpClient(defaults?: RequestOptions): HttpClient`
+
+Creates a client with defaults. Defaults are not shared globally between instances.
+
+## `HttpClient`
+
+### Request methods
+
+- `request(options: RequestOptions): HttpRequestPromise`
+- `get/post/put/patch/delete/head/options(url, options?)`
+
+`HttpRequestPromise` is a `Promise<HttpResponse>` augmented with sugar:
+
+- `.json<T>()`
+- `.text()`
+- `.bytes()`
+- `.arrayBuffer()`
+- `.unwrapJson<T>()`
+
+### Derived clients
+
+- `extend(options: RequestOptions): HttpClient`
+- `withDefaults(options: RequestOptions): HttpClient`
+- `withHeader(name, value): HttpClient`
+- `withHeaders(headers): HttpClient`
+- `withBaseUrl(url): HttpClient`
+- `withContext(ctx): HttpClient`
+- `withAuth(value, { scheme?, headerName? }): HttpClient`
+
+### Hook facades
+
+- `onRequest(fn)`
+- `onResponse(fn)`
+- `onError(fn)`
+- `onRetry(fn)`
+- `onRedirect(fn)`
+
+### Defaults
+
+- `readonly defaults: Readonly<RequestOptions>`
+
+### Special modes
+
+- `raw(options)` — `throwHttpErrors: false`
+- `stream(options)` — `responseType: "stream"` (if adapter supports it)
+
+### Optional builder
+
+- `builder()` — a secondary sugar layer
+
+## Exported types and utilities
+
+Key types: `RequestOptions`, `HttpMethod`, `HttpResponse`, `HttpAdapter`, `HttpHooks`, errors.
+
+Utilities:
+
+- `mergeRequestOptions(parent, child)`
+- `normalizeRequestOptions(plain)`
+- `mergeAndNormalize(parent, child)`
+
+## Next
+
+- Practical scenarios: [`Examples`](/en/examples/)
+- Hook details: [`Hooks`](/en/guides/hooks/)
+- Adapters & runtime limitations: [`Adapters`](/en/guides/adapters/)
+

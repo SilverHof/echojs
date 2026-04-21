@@ -1,0 +1,54 @@
+---
+title: Quick Start
+description: Минимальный рабочий сценарий для @echojs/http.
+---
+
+## Создать клиент
+
+```ts
+import { createHttpClient } from "@echojs/http";
+
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  headers: { "x-client": "echojs" },
+  timeout: { request: 10_000, response: 10_000, read: 30_000 },
+  retry: { limit: 2 },
+});
+```
+
+## GET + типизированный JSON
+
+```ts
+type User = { id: string; name: string };
+
+const users = await http.get("/users").json<User[]>();
+```
+
+## POST JSON
+
+```ts
+const created = await http
+  .post("/users", {
+    json: { name: "Ann" },
+  })
+  .json<User>();
+```
+
+## Immutable instances
+
+```ts
+const authed = http.extend({
+  headers: { authorization: "Bearer TOKEN" },
+});
+
+// http по-прежнему без Authorization
+```
+
+## Дальше
+
+- Про модель запросов: [`Requests`](/guides/requests/)
+- Про ответы и парсинг: [`Responses`](/guides/responses/)
+- Про ошибки: [`Errors`](/guides/errors/)
+- Про хуки: [`Hooks`](/guides/hooks/)
+- Про адаптеры и ограничения fetch: [`Adapters`](/guides/adapters/)
+

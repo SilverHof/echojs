@@ -1,7 +1,7 @@
 import { executeRequest } from "./core/execute.js";
 import { fetchAdapter } from "./adapters/fetch-adapter.js";
 import type { HttpAdapter } from "./types/adapter.js";
-import type { HttpMethod, RequestOptions } from "./types/public.js";
+import type { RequestOptions } from "./types/public.js";
 import type { HttpResponse } from "./types/response.js";
 import { mergeRequestOptions } from "./options/merge.js";
 import { normalizeRequestOptions } from "./options/normalize.js";

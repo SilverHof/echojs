@@ -1,0 +1,73 @@
+---
+title: API Reference (manual)
+description: Справочник по публичному API @echojs/http (ручная версия).
+---
+
+> Автоматический reference (TypeDoc) подключим отдельно. Пока здесь — ручной “map” публичного API.
+
+## `createHttpClient(defaults?: RequestOptions): HttpClient`
+
+Создаёт клиент с дефолтами. Дефолты не “шарятся” глобально между инстансами.
+
+## `HttpClient`
+
+### Методы запросов
+
+- `request(options: RequestOptions): HttpRequestPromise`
+- `get/post/put/patch/delete/head/options(url, options?)`
+
+`HttpRequestPromise` — это `Promise<HttpResponse>` с sugar-методами:
+
+- `.json<T>()`
+- `.text()`
+- `.bytes()`
+- `.arrayBuffer()`
+- `.unwrapJson<T>()`
+
+### Производные клиенты
+
+- `extend(options: RequestOptions): HttpClient`
+- `withDefaults(options: RequestOptions): HttpClient`
+- `withHeader(name, value): HttpClient`
+- `withHeaders(headers): HttpClient`
+- `withBaseUrl(url): HttpClient`
+- `withContext(ctx): HttpClient`
+- `withAuth(value, { scheme?, headerName? }): HttpClient`
+
+### Facade поверх hooks
+
+- `onRequest(fn)`
+- `onResponse(fn)`
+- `onError(fn)`
+- `onRetry(fn)`
+- `onRedirect(fn)`
+
+### Defaults
+
+- `readonly defaults: Readonly<RequestOptions>`
+
+### Специальные режимы
+
+- `raw(options)` — `throwHttpErrors: false`
+- `stream(options)` — `responseType: "stream"` (если адаптер поддерживает)
+
+### Опциональный builder
+
+- `builder()` — вторичный sugar-слой
+
+## Экспортируемые типы и утилиты
+
+Ключевые типы: `RequestOptions`, `HttpMethod`, `HttpResponse`, `HttpAdapter`, `HttpHooks`, ошибки.
+
+Утилиты:
+
+- `mergeRequestOptions(parent, child)`
+- `normalizeRequestOptions(plain)`
+- `mergeAndNormalize(parent, child)`
+
+## Дальше
+
+- Практические сценарии: [`Examples`](/examples/)
+- Детали хуков: [`Hooks`](/guides/hooks/)
+- Адаптеры и ограничения рантайма: [`Adapters`](/guides/adapters/)
+

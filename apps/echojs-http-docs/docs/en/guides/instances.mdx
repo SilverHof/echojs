@@ -1,0 +1,24 @@
+---
+title: Instances
+description: extend(), withX() and snapshot defaults.
+---
+
+Clients in `@echojs/http` are **immutable**: `extend()` creates a new client and does not mutate the parent.
+
+## extend()
+
+```ts
+const publicApi = createHttpClient({ baseUrl: "https://api.example.com" });
+const userApi = publicApi.extend({
+  headers: { authorization: "Bearer SECRET" },
+});
+```
+
+## defaults snapshot
+
+`client.defaults` returns a snapshot so you don’t accidentally mutate internal state.
+
+## withBaseUrl/withHeader/withAuth/withContext
+
+These are sugar helpers over `extend()` for better DX and composition.
+

@@ -1,0 +1,86 @@
+---
+title: "@echojs/http"
+description: "Type-safe, extensible HTTP client: immutable instances, hooks, adapters, strong error model."
+---
+
+`@echojs/http` — HTTP клиент для приложений и библиотек, построенный вокруг:
+
+- **immutable instances**
+- **normalized options model**
+- **hooks** (lifecycle без “магии”)
+- **adapters** (честные capability boundaries)
+- **strong error model** (классы ошибок, `instanceof`, type guards)
+
+## Установка
+
+Пока пакет `private` в монорепо, но публичная установка будет стандартной:
+
+```bash
+bun add @echojs/http
+```
+
+## Quick Start
+
+```ts
+import { createHttpClient } from "@echojs/http";
+
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  timeout: { request: 10_000, response: 10_000, read: 30_000 },
+  retry: { limit: 2 },
+});
+
+const me = await http.get("/me").unwrapJson<{ id: string }>();
+```
+
+## Куда дальше
+
+Пока этот раздел — “контур”. В качестве источника truth по идеологии и контрактам смотри документацию пакета в монорепо:
+
+- `packages/echojs-http/docs/architecture.md`
+- `packages/echojs-http/docs/examples.md`
+- `packages/echojs-http/docs/hooks.md`
+- `packages/echojs-http/docs/adapters.md`
+
+И автосгенерированный API Reference в разделе **API**.
+
+---
+title: "@echojs/http"
+description: "Type-safe, extensible HTTP client: immutable instances, hooks, adapters и strong error model."
+---
+
+`@echojs/http` — type-safe HTTP client с расширяемой архитектурой (**hooks**, **adapters**), строгой моделью ошибок и
+предсказуемой моделью опций.
+
+## Установка
+
+Пока пакет `private` в монорепо, но публичная установка будет стандартной:
+
+```bash
+bun add @echojs/http
+```
+
+## Quick start
+
+```ts
+import { createHttpClient } from "@echojs/http";
+
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  timeout: { request: 10_000, response: 10_000, read: 30_000 },
+  retry: { limit: 2 },
+});
+
+const me = await http.get("/me").unwrapJson<{ id: string }>();
+```
+
+## Дальше
+
+- [`Quick Start`](/packages/http/quick-start/)
+- [`Requests`](/packages/http/requests/)
+- [`Responses`](/packages/http/responses/)
+- [`Errors`](/packages/http/errors/)
+- [`Hooks`](/packages/http/hooks/)
+- [`Adapters`](/packages/http/adapters/)
+- [`API Reference`](/api/)
+

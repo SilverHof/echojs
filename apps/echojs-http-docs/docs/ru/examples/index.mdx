@@ -1,0 +1,101 @@
+---
+title: Examples
+description: Практические сценарии использования @echojs/http.
+---
+
+Ниже — практичные сценарии поверх актуального публичного API.
+
+## Импорт
+
+```ts
+import { createHttpClient } from "@echojs/http";
+```
+
+## 1) Клиент с baseUrl и headers
+
+```ts
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  headers: {
+    "x-client": "my-app",
+    accept: "application/json",
+  },
+});
+
+const res = await http.get("/v1/me");
+console.log(res.status, res.ok);
+```
+
+## 2) `searchParams`
+
+```ts
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+await http.get("/items", {
+  searchParams: { page: 1, status: "active" },
+});
+```
+
+`searchParams` сериализуется в query-string и **дополняет** URL.
+
+## 3) Типизированный JSON
+
+```ts
+type User = { id: string; name: string };
+
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+const users = await http.get("/users").json<User[]>();
+const created = await http.post("/users", { json: { name: "Ann" } }).json<User>();
+```
+
+## 4) raw() — не бросать на 4xx/5xx
+
+```ts
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+const res = await http.raw({ url: "/maybe-missing" });
+if (!res.ok) {
+  console.warn(res.status, await res.text());
+  return;
+}
+
+const data = await res.json();
+```
+
+## 5) stream() — если адаптер поддерживает
+
+```ts
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+const res = await http.stream({ url: "/big.csv" });
+const stream = res.body;
+if (stream && stream instanceof ReadableStream) {
+  // ваш пайплайн чтения потока
+}
+```
+
+## 6) Хуки и controlled retry
+
+```ts
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  retry: { limit: 1 },
+  hooks: {
+    afterResponse: [
+      async ({ response }) => {
+        if (response.headers.get("x-ratelimit-remaining") === "0") {
+          return { kind: "retry", delayMs: 500 };
+        }
+      },
+    ],
+  },
+});
+```
+
+## См. также
+
+- [`API Reference`](/api-reference/)
+- [`Hooks`](/guides/hooks/)
+- [`Adapters`](/guides/adapters/)
+

@@ -1,0 +1,57 @@
+---
+title: Requests
+description: URL, method, headers, body/json/form, searchParams и AbortSignal.
+---
+
+`@echojs/http` строится вокруг `RequestOptions`: вы либо вызываете шорткаты (`get/post/...`), либо `request({ ... })`.
+
+## `request()` и явный method
+
+```ts
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+await http.request({
+  method: "PATCH",
+  url: "/users/me",
+  json: { displayName: "Neo" },
+});
+```
+
+Метод можно писать и в нижнем регистре (`"patch"`) — он нормализуется.
+
+## `searchParams`
+
+```ts
+await http.get("/items", {
+  searchParams: { page: 1, status: "active" },
+});
+```
+
+`searchParams` **дополняет** URL.
+
+## Тело запроса: `body` vs `json` vs `form`
+
+```ts
+await http.post("/login", {
+  json: { email: "a@b.c", password: "***" },
+});
+
+await http.post("/token", {
+  form: { grant_type: "client_credentials", client_id: "..." },
+});
+```
+
+Важно: **нельзя одновременно** задавать `body`, `json` и `form` — это конфликт, который будет выявлен на нормализации.
+
+## Отмена (`AbortSignal`)
+
+```ts
+const controller = new AbortController();
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+const p = http.get("/slow", { signal: controller.signal });
+controller.abort();
+
+await p.catch((e) => e);
+```
+

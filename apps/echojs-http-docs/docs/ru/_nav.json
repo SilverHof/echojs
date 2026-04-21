@@ -1,0 +1,28 @@
+[
+  {
+    "text": "Главная",
+    "link": "/",
+    "activeMatch": "^/$"
+  },
+  {
+    "text": "Быстрый старт",
+    "link": "/quick-start/",
+    "activeMatch": "/quick-start/"
+  },
+  {
+    "text": "Гайды",
+    "link": "/guides/",
+    "activeMatch": "/guides/"
+  },
+  {
+    "text": "Примеры",
+    "link": "/examples/",
+    "activeMatch": "/examples/"
+  },
+  {
+    "text": "API",
+    "link": "/api-reference/",
+    "activeMatch": "/api-reference/"
+  }
+]
+

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   AbortError,
-  HTTPStatusError,
   HttpClientError,
   isAbortError,
   isHttpError,

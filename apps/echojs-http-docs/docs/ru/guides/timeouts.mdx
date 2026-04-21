@@ -1,0 +1,30 @@
+---
+title: Timeouts
+description: Фазовые таймауты (request/response/read) и ограничения fetch.
+---
+
+`@echojs/http` поддерживает фазовые таймауты:
+
+- `request`
+- `response`
+- `read`
+
+Важно: поверх `fetch` это **best-effort** слой — не все фазы можно портируемо различить.
+
+## Пример
+
+```ts
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  timeout: {
+    request: 10_000,
+    response: 10_000,
+    read: 30_000,
+  },
+});
+```
+
+## Рекомендация
+
+Если тебе нужны более строгие семантики (например, отдельный TTFB), это обычно зона **специализированного адаптера** (Node/undici) и явной документации ограничений.
+

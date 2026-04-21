@@ -1,0 +1,50 @@
+---
+title: Packages
+description: Каталог пакетов экосистемы EchoJS.
+---
+
+Экосистема развивается итеративно: часть пакетов уже имеет workspace-реализацию, часть — пока как “контур” (папка + README-заметка).
+
+## Активные пакеты (workspace)
+
+- [`@echojs/http`](/packages/http/) — type-safe HTTP client (hooks, adapters, strong errors).
+- [`@echojs/reactivity`](/packages/reactivity/) — строгая реактивность поверх engine, с собственным surface API.
+
+## Планируемые пакеты (дизайн/заготовки)
+
+Эти пакеты сейчас присутствуют как директории в `packages/`, но ещё не оформлены как publishable `@echojs/*` workspace-пакеты:
+
+- `echojs-core`
+- `echojs-jsx`
+- `echojs-router`
+- `echojs-web`
+- `echojs-ui`
+- `echojs-url`
+- `echojs-utils`
+- `echojs-ssr`
+- `echojs-sdk`
+- `echojs-query`
+- `echojs-pwa`
+- `echojs-mobile`
+- `echojs-form`
+- `echojs-dev-tools`
+- `echojs-hotkey`
+- `echojs-intl`
+- `echojs-storage`
+- `echojs-hyper`
+
+## Как добавить новый пакет в экосистему
+
+Коротко: добавь `packages/<dir>/package.json` с `name: "@echojs/<slug>"`, публичный entrypoint `src/index.ts`, и документацию в `/packages/<slug>/`.
+
+---
+title: Packages
+description: Обзор всех пакетов экосистемы @echojs.
+---
+
+import { PackageGrid } from "../../theme/components/PackageGrid";
+
+Здесь собраны все workspace-пакеты `@echojs/*`, которые обнаружены автоматически.
+
+<PackageGrid />
+

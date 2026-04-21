@@ -24,6 +24,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
+    "@echojs/oxc-config": "workspace:*",
+    "@vitest/ui": "4.1.4",
     "oxlint": "^1.60.0",
     "typescript": "5.9.2",
     "vitest": "^4.1.4"

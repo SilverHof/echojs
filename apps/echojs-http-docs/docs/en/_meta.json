@@ -1,0 +1,15 @@
+[
+  "quick-start",
+  {
+    "type": "dir",
+    "name": "guides",
+    "label": "Guides"
+  },
+  {
+    "type": "dir",
+    "name": "examples",
+    "label": "Examples"
+  },
+  "api-reference"
+]
+

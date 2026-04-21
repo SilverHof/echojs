@@ -1,0 +1,47 @@
+---
+title: Architecture
+description: Слои @echojs/http, точки расширения и внутренняя работа.
+---
+
+## Архитектурные слои
+
+`@echojs/http` построен по принципу **слойной архитектуры** с четкими границами ответственности:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Public API (HttpClient)                                    │
+│  - createHttpClient()                                       │
+│  - HttpClientImpl                                           │
+│  - Builder pattern (.withX(), .builder())                  │
+├─────────────────────────────────────────────────────────────┤
+│  Options Layer                                              │
+│  - mergeRequestOptions()     ← слияние parent + child       │
+│  - validateRequestOptions() ← проверка конфликтов           │
+│  - normalizeRequestOptions() ← нормализация внутренней    │
+│    модели                                                   │
+├─────────────────────────────────────────────────────────────┤
+│  Core Execution Layer                                       │
+│  - executeRequest()                                         │
+│  - retry/redirect/timeout                                   │
+│  - hooks lifecycle                                          │
+├─────────────────────────────────────────────────────────────┤
+│  Transport Layer                                            │
+│  - HttpAdapter                                              │
+│  - fetchAdapter (default)                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Поток выполнения запроса (high-level)
+
+1) Merge defaults + request options (`mergeRequestOptions`)
+2) Validate conflicts (`validateRequestOptions`)
+3) Normalize into internal model (`normalizeRequestOptions`)
+4) Run `init` hooks (sync)
+5) Attempt loop with retry policy:
+   - `beforeRequest`
+   - adapter call
+   - redirects handling (manual)
+   - response finalization + parsing mode
+   - `afterResponse` (can return controlled retry)
+6) If error: `beforeError` (can map error) → throw
+

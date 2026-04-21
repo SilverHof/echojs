@@ -1,0 +1,50 @@
+---
+title: Errors
+description: Strong error model, классы ошибок и type guards.
+---
+
+## Иерархия ошибок
+
+```
+Error
+└── HttpClientError (abstract base)
+    ├── RequestError      ← проблема с опциями/подготовкой
+    ├── NetworkError      ← транспортная проблема
+    ├── TimeoutError      ← таймаут
+    ├── AbortError        ← отмена через AbortSignal
+    ├── HTTPStatusError   ← 4xx/5xx статус
+    ├── ParseError        ← ошибка парсинга тела
+    ├── RetryError        ← исчерпаны попытки
+    └── RedirectError     ← проблема с редиректами
+```
+
+## Базовый класс: HttpClientError
+
+Все ошибки наследуются от `HttpClientError` и имеют общие поля:
+
+```ts
+interface HttpClientError {
+  // Стандартные Error поля
+  name: string;
+  message: string;
+  cause?: unknown;
+  
+  // Уникальный код ошибки
+  code: HttpErrorCode;  // "ERR_REQUEST" | "ERR_NETWORK" | ...
+  
+  // Request metadata
+  request?: NormalizedRequestOptions;
+  method?: string;
+  url?: string;
+  
+  // Response (если есть)
+  response?: HttpResponse;
+  status?: number;
+  
+  // Observability
+  requestId?: string;
+}
+```
+
+Детали: см. полную страницу в корне (временно).
+

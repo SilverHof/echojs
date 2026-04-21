@@ -1,0 +1,59 @@
+---
+title: "@echojs/reactivity"
+description: "Минималистичная строгая реактивность для EchoJS с собственным surface API."
+---
+
+`@echojs/reactivity` — минималистичная строгая реактивность, построенная поверх engine (`alien-signals`), но с **собственным surface API**.
+
+Цели:
+
+- объектный API (читать проще, ошибаться сложнее)
+- строгое разделение writable / readonly
+- запрет случайных мутаций через `.value()`
+- возможность заменить engine без слома публичного API
+
+## Quick Start
+
+```ts
+import { signal, computed, effect } from "@echojs/reactivity";
+
+const $count = signal(0);
+const $double = computed(() => $count.value() * 2);
+
+effect(() => {
+  console.log($double.value());
+});
+
+$count.set(2);
+```
+
+## API Reference
+
+Смотри раздел **API** — он генерируется из публичных exports.
+
+---
+title: "@echojs/reactivity"
+description: Минималистичная строгая реактивность для EchoJS.
+---
+
+`@echojs/reactivity` — минималистичная строгая реактивность с объектным API.
+
+## Quick start
+
+```ts
+import { signal, computed, effect } from "@echojs/reactivity";
+
+const $count = signal(0);
+const $double = computed(() => $count.value() * 2);
+
+effect(() => {
+  console.log($double.value());
+});
+
+$count.set(2);
+```
+
+## API Reference
+
+См. [`API`](/api/).
+

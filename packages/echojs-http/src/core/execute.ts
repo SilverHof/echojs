@@ -1,4 +1,3 @@
-import { fetchAdapter } from "../adapters/fetch-adapter.js";
 import { AbortError } from "../errors/abort-error.js";
 import { HttpClientError } from "../errors/http-client-error.js";
 import { HTTPStatusError } from "../errors/http-status-error.js";

@@ -1,0 +1,28 @@
+[
+  {
+    "text": "Home",
+    "link": "/en/",
+    "activeMatch": "^/en/$"
+  },
+  {
+    "text": "Quick Start",
+    "link": "/en/quick-start/",
+    "activeMatch": "/en/quick-start/"
+  },
+  {
+    "text": "Guides",
+    "link": "/en/guides/",
+    "activeMatch": "/en/guides/"
+  },
+  {
+    "text": "Examples",
+    "link": "/en/examples/",
+    "activeMatch": "/en/examples/"
+  },
+  {
+    "text": "API",
+    "link": "/en/api-reference/",
+    "activeMatch": "/en/api-reference/"
+  }
+]
+

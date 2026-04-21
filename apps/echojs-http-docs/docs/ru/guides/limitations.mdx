@@ -1,0 +1,19 @@
+---
+title: Limitations & Runtime notes
+description: Честные ограничения и зависимости от рантайма/адаптера.
+---
+
+`@echojs/http` намеренно фиксирует **capability boundaries**.
+
+## Фазовые таймауты
+
+Таймауты `request/response/read` реализованы **best-effort** поверх `fetch`: не все фазы различимы портируемо.
+
+## decompress
+
+Для `fetch` декомпрессия часто уже выполнена рантаймом до уровня `Response`.
+
+## JSON типизация ≠ runtime validation
+
+`.json<T>()` / `.unwrapJson<T>()` **не валидируют** runtime данные. Для валидации нужен schema/plugin слой (планируется) или ручные проверки.
+

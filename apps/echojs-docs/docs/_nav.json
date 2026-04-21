@@ -1,0 +1,37 @@
+[
+  {
+    "text": "Home",
+    "link": "/",
+    "activeMatch": "^/$"
+  },
+  {
+    "text": "Get Started",
+    "link": "/getting-started/",
+    "activeMatch": "/getting-started/"
+  },
+  {
+    "text": "Packages",
+    "link": "/packages/",
+    "activeMatch": "/packages/"
+  },
+  {
+    "text": "Guides",
+    "link": "/guides/",
+    "activeMatch": "/guides/"
+  },
+  {
+    "text": "API",
+    "link": "/api/",
+    "activeMatch": "/api/"
+  },
+  {
+    "text": "Examples",
+    "link": "/examples/",
+    "activeMatch": "/examples/"
+  },
+  {
+    "text": "Contributing",
+    "link": "/contributing/",
+    "activeMatch": "/contributing/"
+  }
+]

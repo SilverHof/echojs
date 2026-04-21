@@ -1,0 +1,24 @@
+---
+title: Instances
+description: extend(), withX() и snapshot defaults.
+---
+
+Клиенты в `@echojs/http` **иммутабельны**: `extend()` создаёт новый клиент и не мутирует родителя.
+
+## extend()
+
+```ts
+const publicApi = createHttpClient({ baseUrl: "https://api.example.com" });
+const userApi = publicApi.extend({
+  headers: { authorization: "Bearer SECRET" },
+});
+```
+
+## defaults snapshot
+
+`client.defaults` возвращает snapshot, чтобы случайно не мутировать внутреннее состояние.
+
+## withBaseUrl/withHeader/withAuth/withContext
+
+Это sugar над `extend()` для DX и композиции инстансов.
+

@@ -1,0 +1,37 @@
+---
+title: Adapters
+description: HttpAdapter, capability flags и особенности fetchAdapter.
+---
+
+Адаптер отвечает за **транспорт**: принять `NormalizedRequestOptions` и вернуть `AdapterResponse`.
+
+Также объявляет `supports` — capability flags:
+
+- `stream`
+- `uploadProgress`
+- `downloadProgress`
+- `cookies`
+- `proxy`
+
+Это граница компетенций: ядро не должно предполагать возможности, которые адаптер не заявил.
+
+## `fetchAdapter`
+
+Базовый адаптер на глобальном `fetch` с `redirect: "manual"`, чтобы редиректы обрабатывались ядром.
+
+### Таймауты (best-effort)
+
+`fetch` не даёт портируемого API для всех фаз:
+
+- `request/response`: моделируются общим дедлайном на время получения `Response`
+- `read`: отдельно оборачивает чтение тела (когда `responseType !== "stream"`)
+
+### `decompress`
+
+Для `fetch` декомпрессия часто уже выполнена средой. Флаг остаётся частью модели опций и документации совместимости.
+
+## Как подключить свой адаптер
+
+1) Реализуй `HttpAdapter`.
+2) Передай `adapter` в `createHttpClient({ adapter })` или в конкретный `request({ adapter })`.
+

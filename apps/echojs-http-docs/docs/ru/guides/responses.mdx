@@ -1,0 +1,43 @@
+---
+title: Responses
+description: HttpResponse, парсинг и helper-методы.
+---
+
+В `@echojs/http` ответ — это объект `HttpResponse` с методами чтения тела и удобными helpers.
+
+## JSON / text / bytes
+
+```ts
+type User = { id: string; name: string };
+
+const http = createHttpClient({ baseUrl: "https://api.example.com" });
+
+const users = await http.get("/users").json<User[]>();
+const robots = await http.get("/robots.txt").text();
+const logo = await http.get("/favicon.ico").bytes();
+```
+
+## unwrapJson()
+
+`unwrapJson<T>()` — “sugar” для частого сценария: получить JSON и считать, что `ok`.
+
+```ts
+const me = await http.get("/me").unwrapJson<{ id: string }>();
+```
+
+## raw() — вернуть Response даже на 4xx/5xx
+
+```ts
+const res = await http.raw({ url: "/maybe-missing" });
+if (!res.ok) {
+  console.warn(res.status, await res.text());
+}
+```
+
+## stream() — если адаптер поддерживает
+
+```ts
+const res = await http.stream({ url: "/big.csv" });
+// res.body может быть ReadableStream в браузере/совместимых рантаймах
+```
+
