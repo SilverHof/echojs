@@ -1,0 +1,30 @@
+{
+  "name": "@echojs/http",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint .",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "oxlint": "^1.60.0",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.4"
+  }
+}

@@ -1,0 +1,182 @@
+import http from "node:http";
+import { describe, expect, it } from "vitest";
+import { createHttpClient } from "../../src/create-http-client.js";
+import { HTTPStatusError } from "../../src/errors/http-status-error.js";
+import { NetworkError } from "../../src/errors/network-error.js";
+import { RedirectError } from "../../src/errors/redirect-error.js";
+import { RetryError } from "../../src/errors/retry-error.js";
+import { AbortError } from "../../src/errors/abort-error.js";
+import { TimeoutError } from "../../src/errors/timeout-error.js";
+import { ParseError } from "../../src/errors/parse-error.js";
+
+async function listen(server: http.Server): Promise<{ baseUrl: string; close: () => Promise<void> }> {
+  await new Promise<void>((resolve) => server.listen(0, resolve));
+  const addr = server.address();
+  if (addr === null || typeof addr === "string") {
+    throw new Error("invalid server address");
+  }
+  const baseUrl = `http://127.0.0.1:${addr.port}`;
+  return {
+    baseUrl,
+    close: async () => {
+      await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+    },
+  };
+}
+
+describe("integration: local http server", () => {
+  it("GET + json parsing", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.setHeader("content-type", "application/json; charset=utf-8");
+      res.end(JSON.stringify([{ id: 1 }]));
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({ baseUrl });
+      const users = await httpClient.get("/").json<Array<{ id: number }>>();
+      expect(users[0]?.id).toBe(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("throws HTTPStatusError by default", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 500;
+      res.end("nope");
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({ baseUrl });
+      await expect(httpClient.get("/")).rejects.toBeInstanceOf(HTTPStatusError);
+    } finally {
+      await close();
+    }
+  });
+
+  it("raw() does not throw on non-2xx", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 404;
+      res.end("missing");
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({ baseUrl });
+      const res = await httpClient.raw({ url: "/" });
+      expect(res.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it("respects AbortSignal before request completes", async () => {
+    const server = http.createServer((req, res) => {
+      setTimeout(() => {
+        res.statusCode = 200;
+        res.end("ok");
+      }, 500);
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const controller = new AbortController();
+      const httpClient = createHttpClient({ baseUrl, signal: controller.signal });
+      const p = httpClient.get("/");
+      controller.abort();
+      await expect(p).rejects.toBeInstanceOf(AbortError);
+    } finally {
+      await close();
+    }
+  });
+
+  it("retries then exhausts", async () => {
+    let hits = 0;
+    const server = http.createServer((req, res) => {
+      hits += 1;
+      res.statusCode = 503;
+      res.end("down");
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({
+        baseUrl,
+        retry: { limit: 2, methods: ["GET"], statusCodes: [503] },
+      });
+      await expect(httpClient.get("/")).rejects.toBeInstanceOf(RetryError);
+      expect(hits).toBe(3);
+    } finally {
+      await close();
+    }
+  });
+
+  it("redirect max", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 302;
+      res.setHeader("location", "/loop");
+      res.end();
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({
+        baseUrl,
+        redirect: { follow: true, max: 3, keepMethod: true, strictOrigin: false, stripSensitiveHeaders: true },
+      });
+      await expect(httpClient.get("/start")).rejects.toBeInstanceOf(RedirectError);
+    } finally {
+      await close();
+    }
+  });
+
+  it("invalid JSON throws ParseError", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.setHeader("content-type", "application/json");
+      res.end("{");
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({ baseUrl, throwHttpErrors: false });
+      await expect(httpClient.get("/").json()).rejects.toBeInstanceOf(ParseError);
+    } finally {
+      await close();
+    }
+  });
+
+  it("extend does not mutate parent defaults", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.setHeader("content-type", "text/plain");
+      res.end(req.headers["x-client"] ?? "");
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const parent = createHttpClient({ baseUrl, headers: { "x-client": "parent" } });
+      const child = parent.extend({ headers: { "x-client": "child" } });
+      const t1 = await parent.get("/").text();
+      const t2 = await child.get("/").text();
+      expect(t1.trim()).toBe("parent");
+      expect(t2.trim()).toBe("child");
+    } finally {
+      await close();
+    }
+  });
+
+  it("times out slow responses (best-effort)", async () => {
+    const server = http.createServer((req, res) => {
+      // never end
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({
+        baseUrl,
+        timeout: { request: 200 },
+      });
+      await expect(httpClient.get("/slow")).rejects.toSatisfy(
+        (e: unknown) =>
+          e instanceof TimeoutError || e instanceof AbortError || e instanceof NetworkError,
+      );
+    } finally {
+      await close();
+    }
+  });
+});

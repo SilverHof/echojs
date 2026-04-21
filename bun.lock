@@ -56,11 +56,21 @@
         "typescript": "5.9.2",
       },
     },
+    "packages/echojs-http": {
+      "name": "@echojs/http",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@types/node": "^22.15.3",
+        "oxlint": "^1.60.0",
+        "typescript": "5.9.2",
+        "vitest": "^4.1.4",
+      },
+    },
     "packages/echojs-reactivity": {
-      "name": "echojs-reactivity",
+      "name": "@echojs/reactivity",
       "version": "0.0.0",
       "dependencies": {
-        "alien-signals": "3.1.2",
+        "alien-signals": "^3.1.2",
       },
       "devDependencies": {
         "oxlint": "^1.60.0",
@@ -82,6 +92,10 @@
     },
   },
   "packages": {
+    "@echojs/http": ["@echojs/http@workspace:packages/echojs-http"],
+
+    "@echojs/reactivity": ["@echojs/reactivity@workspace:packages/echojs-reactivity"],
+
     "@emnapi/runtime": ["@emnapi/runtime@1.10.0", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.25.12", "", { "os": "aix", "cpu": "ppc64" }, "sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA=="],
@@ -423,8 +437,6 @@
     "docs": ["docs@workspace:apps/docs"],
 
     "echojs-demo": ["echojs-demo@workspace:apps/echojs-demo"],
-
-    "echojs-reactivity": ["echojs-reactivity@workspace:packages/echojs-reactivity"],
 
     "es-module-lexer": ["es-module-lexer@2.0.0", "", {}, "sha512-5POEcUuZybH7IdmGsD8wlf0AI55wMecM9rVBTI/qEAy2c1kTOm3DjFYjrBdI2K3BaJjJYfYFeRtM0t9ssnRuxw=="],
 
