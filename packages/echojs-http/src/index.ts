@@ -41,7 +41,12 @@ export {
   ParseError,
   RetryError,
   RedirectError,
+  isAbortError,
+  isHttpError,
+  isNetworkError,
+  isStatusError,
+  isTimeoutError,
 } from "./errors/index.js";
 export type { TimeoutPhase } from "./errors/index.js";
 
-export { AfterResponseControlledRetry } from "./core/execute.js";
+// Intentionally not exporting internal retry control error types.

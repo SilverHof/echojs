@@ -12,6 +12,7 @@ export class AbortError extends HttpClientError {
       timings?: HttpTimings;
       retryCount?: number;
       context?: Record<string, unknown>;
+      requestId?: string;
     } = {},
   ) {
     super(message, { ...opts, code: "ERR_ABORT" });

@@ -8,3 +8,10 @@ export { HTTPStatusError } from "./http-status-error.js";
 export { ParseError } from "./parse-error.js";
 export { RetryError } from "./retry-error.js";
 export { RedirectError } from "./redirect-error.js";
+export {
+  isAbortError,
+  isHttpError,
+  isNetworkError,
+  isStatusError,
+  isTimeoutError,
+} from "./guards.js";

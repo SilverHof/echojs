@@ -9,7 +9,7 @@
 5. **Адаптер** (`src/adapters/fetch-adapter.ts`) — транспорт и capability flags
 6. **Парсинг** (`src/core/parse-*`, `HttpResponseImpl`) — отдельно от исполнения
 7. **Ошибки** (`src/errors/*`) — нормализация и `beforeError`
-8. **Плагины** (`src/plugins/index.ts`) — точка расширения на будущее
+8. **Плагины** — точка расширения (в core постепенно; см. `docs/plugins.md`)
 
 ## Иммутабельность
 
@@ -31,11 +31,11 @@
 
 - **Адаптер**: интерфейс `HttpAdapter` + `supports` для capability boundaries.
 - **Hooks**: расширение поведения без “магического” DSL.
-- **Plugins**: заготовка интерфейса `HttpPlugin` (пока без реализаций).
+- **Plugins**: проектируются как opt-in слой поверх hooks/adapters (см. `docs/plugins.md`).
 
 ## Контролируемый retry из `afterResponse`
 
-Если хук возвращает `{ kind: "retry", delayMs? }`, ядро бросает `AfterResponseControlledRetry`, который обрабатывается верхним ретрай-циклом и уважает `retry.limit`.
+Если хук возвращает `{ kind: "retry", delayMs? }`, запрос будет переисполнен в рамках общего retry-цикла и с уважением к `retry.limit`.
 
 ## Примеры
 

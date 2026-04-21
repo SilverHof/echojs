@@ -100,6 +100,22 @@ export class HttpResponseImpl<TBody = unknown> implements HttpResponse<TBody> {
     copy.set(u8);
     return copy.buffer;
   }
+
+  assertOk(): void {
+    if (this.ok) return;
+    throw new HTTPStatusError(`HTTP ${this.status} ${this.statusText}`, {
+      response: this,
+      request: this.request,
+      timings: this.timings,
+      retryCount: this.retryCount,
+      context: this.request.context,
+    });
+  }
+
+  async unwrapJson<R = unknown>(): Promise<R> {
+    this.assertOk();
+    return await this.json<R>();
+  }
 }
 
 export async function httpResponseFromResponseLike(

@@ -12,6 +12,7 @@ import type { RequestOptions } from "../types/public.js";
 import type { HttpResponse } from "../types/response.js";
 import { mergeTimings } from "../utils/timing.js";
 import { readStreamToBytes } from "../utils/stream.js";
+import { defaultGenerateRequestId } from "../utils/request-id.js";
 import {
   runAfterResponseHooks,
   runBeforeErrorHooks,
@@ -77,6 +78,7 @@ async function callAdapter(
   normalized: NormalizedRequestOptions,
   signal: AbortSignal | undefined,
   context: Record<string, unknown>,
+  requestId: string,
 ): Promise<AdapterResponse> {
   const timings: AdapterContext["timings"] = {};
   const ctx: AdapterContext = { signal, context, timings };
@@ -85,9 +87,14 @@ async function callAdapter(
   } catch (cause) {
     if (cause instanceof HttpClientError) throw cause;
     if (cause instanceof DOMException && cause.name === "AbortError") {
-      throw new AbortError(undefined, { cause });
+      throw new AbortError(undefined, { cause, request: normalized, requestId, context });
     }
-    throw new NetworkError("Network request failed", { cause, context });
+    throw new NetworkError("Network request failed", {
+      cause,
+      context,
+      request: normalized,
+      requestId,
+    });
   }
 }
 
@@ -178,11 +185,13 @@ export async function executeRequest(opts: {
   await runInitHooks(normalized.hooks, plain, normalized);
 
   let consumedRetries = 0;
+  const requestId =
+    normalized.tracing.generateRequestId?.() ?? defaultGenerateRequestId();
 
   while (true) {
     throwIfAborted(normalized.signal);
     try {
-      return await attemptOnce({ plain, normalized, adapter, consumedRetries });
+      return await attemptOnce({ plain, normalized, adapter, consumedRetries, requestId });
     } catch (error) {
       if (error instanceof AfterResponseControlledRetry) {
         if (consumedRetries >= normalized.retry.limit) {
@@ -191,6 +200,7 @@ export async function executeRequest(opts: {
             request: normalized,
             retryCount: consumedRetries,
             context: normalized.context,
+            requestId,
           });
         }
 
@@ -242,6 +252,7 @@ export async function executeRequest(opts: {
           request: normalized,
           retryCount: consumedRetries,
           context: normalized.context,
+          requestId,
         });
       }
 
@@ -278,8 +289,9 @@ async function attemptOnce(opts: {
   normalized: NormalizedRequestOptions;
   adapter: HttpAdapter;
   consumedRetries: number;
+  requestId: string;
 }): Promise<HttpResponse<unknown>> {
-  const { plain, normalized, adapter, consumedRetries } = opts;
+  const { plain, normalized, adapter, consumedRetries, requestId } = opts;
 
   const { signal: reqTimeoutSignal, cancel: cancelReq } = createTimeoutSignal(
     pickDeadlineMs(normalized.timeout.request, normalized.timeout.response),
@@ -294,13 +306,23 @@ async function attemptOnce(opts: {
       context: normalized.context,
     });
 
-    let current = normalized;
+    const tracingHeader = normalized.tracing.requestIdHeader?.toLowerCase();
+    let current: NormalizedRequestOptions = { ...normalized, context: { ...normalized.context, requestId } };
+    if (tracingHeader) {
+      current = {
+        ...current,
+        headers:
+          current.headers[tracingHeader] === undefined
+            ? { ...current.headers, [tracingHeader]: requestId }
+            : current.headers,
+      };
+    }
     const visited = new Set<string>([current.url]);
     let redirectCount = 0;
 
     for (;;) {
       throwIfAborted(execSignal);
-      const adapterRes = await callAdapter(adapter, current, execSignal, current.context);
+      const adapterRes = await callAdapter(adapter, current, execSignal, current.context, requestId);
 
       if (current.redirect.follow && isRedirectStatus(adapterRes.status)) {
         if (redirectCount >= current.redirect.max) {
@@ -309,6 +331,7 @@ async function attemptOnce(opts: {
             lastLocation: adapterRes.headers.get("location") ?? undefined,
             request: current,
             context: current.context,
+            requestId,
           });
         }
 
@@ -333,6 +356,7 @@ async function attemptOnce(opts: {
             lastLocation: location ?? undefined,
             request: current,
             context: current.context,
+            requestId,
           });
         }
         visited.add(current.url);
@@ -360,10 +384,18 @@ async function attemptOnce(opts: {
       const finalResponse = after.response;
 
       if (!finalResponse.ok && current.throwHttpErrors) {
+        let preview: string | undefined;
+        if (finalResponse.rawBody) {
+          const limit = current.tracing.errorBodyPreviewBytes;
+          const slice = finalResponse.rawBody.slice(0, limit);
+          preview = new TextDecoder("utf-8", { fatal: false }).decode(slice);
+        }
         throw new HTTPStatusError(`HTTP ${finalResponse.status} ${finalResponse.statusText}`, {
           response: finalResponse,
           request: current,
           context: current.context,
+          requestId,
+          responseBodyPreview: preview,
         });
       }
 

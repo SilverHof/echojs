@@ -47,6 +47,7 @@ export function mergeRequestOptions(parent: Readonly<RequestOptions>, child: Rea
     hooks: hooks as unknown as RequestOptions["hooks"],
     context: mergeRecord(parent.context ?? {}, child.context ?? {}) as Record<string, unknown>,
     adapter: child.adapter ?? parent.adapter,
+    tracing: { ...parent.tracing, ...child.tracing },
   };
 }
 

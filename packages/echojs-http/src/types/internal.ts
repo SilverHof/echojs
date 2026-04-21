@@ -49,4 +49,10 @@ export interface NormalizedRequestOptions {
   context: Record<string, unknown>;
   adapter: HttpAdapter | undefined;
   baseUrl: string | undefined;
+
+  tracing: {
+    requestIdHeader?: string | undefined;
+    generateRequestId?: (() => string) | undefined;
+    errorBodyPreviewBytes: number;
+  };
 }

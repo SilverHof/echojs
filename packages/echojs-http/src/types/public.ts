@@ -86,6 +86,26 @@ export interface RequestOptions {
   hooks?: Partial<HttpHooks>;
   context?: Record<string, unknown>;
   adapter?: HttpAdapter;
+
+  /**
+   * Observability / tracing configuration (best-effort and adapter-aware).
+   */
+  tracing?: {
+    /**
+     * When set, `@echojs/http` will generate a per-request id and inject it into request headers
+     * unless the header already exists.
+     */
+    requestIdHeader?: string;
+    /**
+     * Override request id generation.
+     */
+    generateRequestId?: () => string;
+    /**
+     * Max bytes to capture into error previews when available.
+     * Default: 1024.
+     */
+    errorBodyPreviewBytes?: number;
+  };
 }
 
 /**

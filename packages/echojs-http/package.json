@@ -19,7 +19,8 @@
     "check-types": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint .",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

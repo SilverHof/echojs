@@ -1,5 +1,5 @@
-import { HttpClientImpl, type HttpClient } from "./client.js";
-import type { RequestOptions } from "./types/public.js";
+import { HttpClientImpl, type HttpClient } from './client.js';
+import type { RequestOptions } from './types/public.js';
 
 /**
  * Creates an immutable-by-default HTTP client instance.

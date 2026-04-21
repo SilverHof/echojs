@@ -17,10 +17,25 @@
 - `.text()`
 - `.bytes()`
 - `.arrayBuffer()`
+- `.unwrapJson<T>()`
 
 ### Производные клиенты
 
 - `extend(options: RequestOptions): HttpClient`
+- `withDefaults(options: RequestOptions): HttpClient`
+- `withHeader(name, value): HttpClient`
+- `withHeaders(headers): HttpClient`
+- `withBaseUrl(url): HttpClient`
+- `withContext(ctx): HttpClient`
+- `withAuth(value, { scheme?, headerName? }): HttpClient`
+
+### Facade поверх hooks
+
+- `onRequest(fn)`
+- `onResponse(fn)`
+- `onError(fn)`
+- `onRetry(fn)`
+- `onRedirect(fn)`
 
 ### Defaults
 

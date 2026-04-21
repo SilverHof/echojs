@@ -3,6 +3,11 @@ import {
   AbortError,
   HTTPStatusError,
   HttpClientError,
+  isAbortError,
+  isHttpError,
+  isNetworkError,
+  isStatusError,
+  isTimeoutError,
   NetworkError,
   ParseError,
   RedirectError,
@@ -20,5 +25,14 @@ describe("error model", () => {
     expect(new ParseError("x") instanceof HttpClientError).toBe(true);
     expect(new RetryError("x", { lastError: new Error("y") }) instanceof HttpClientError).toBe(true);
     expect(new RedirectError("x", { redirectCount: 3 }) instanceof HttpClientError).toBe(true);
+  });
+
+  it("provides type guards", () => {
+    const e: unknown = new TimeoutError("x", { phase: "read" });
+    expect(isHttpError(e)).toBe(true);
+    expect(isTimeoutError(e)).toBe(true);
+    expect(isAbortError(e)).toBe(false);
+    expect(isNetworkError(e)).toBe(false);
+    expect(isStatusError(e)).toBe(false);
   });
 });

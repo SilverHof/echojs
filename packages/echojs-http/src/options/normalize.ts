@@ -67,6 +67,12 @@ export function normalizeRequestOptions(plain: Readonly<RequestOptions>): Normal
   const throwHttpErrors = plain.throwHttpErrors ?? true;
   const hooks = freezeHooks((plain as { hooks?: HttpHooks }).hooks ?? EMPTY_HOOKS);
 
+  const tracing = {
+    requestIdHeader: plain.tracing?.requestIdHeader,
+    generateRequestId: plain.tracing?.generateRequestId,
+    errorBodyPreviewBytes: plain.tracing?.errorBodyPreviewBytes ?? 1024,
+  };
+
   return {
     method,
     url,
@@ -84,6 +90,7 @@ export function normalizeRequestOptions(plain: Readonly<RequestOptions>): Normal
     context: { ...plain.context },
     adapter: plain.adapter,
     baseUrl: typeof plain.baseUrl === "string" ? plain.baseUrl : plain.baseUrl?.toString(),
+    tracing,
   };
 }
 

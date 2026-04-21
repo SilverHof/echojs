@@ -16,6 +16,8 @@ export class HTTPStatusError extends HttpClientError {
       retryCount?: number;
       context?: Record<string, unknown>;
       cause?: unknown;
+      requestId?: string;
+      responseBodyPreview?: string;
     },
   ) {
     super(message, {

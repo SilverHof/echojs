@@ -17,6 +17,7 @@ export class RedirectError extends HttpClientError {
       retryCount?: number;
       context?: Record<string, unknown>;
       cause?: unknown;
+      requestId?: string;
     },
   ) {
     super(message, { ...opts, code: "ERR_REDIRECT" });

@@ -15,6 +15,7 @@ export class RetryError extends HttpClientError {
       retryCount?: number;
       context?: Record<string, unknown>;
       cause?: unknown;
+      requestId?: string;
     },
   ) {
     super(message, { ...opts, code: "ERR_RETRY", cause: opts.cause ?? opts.lastError });

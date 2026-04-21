@@ -41,6 +41,22 @@ describe("integration: local http server", () => {
     }
   });
 
+  it("unwrapJson() combines status check + json parsing", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.setHeader("content-type", "application/json; charset=utf-8");
+      res.end(JSON.stringify({ ok: true }));
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({ baseUrl });
+      const data = await httpClient.get("/").unwrapJson<{ ok: boolean }>();
+      expect(data.ok).toBe(true);
+    } finally {
+      await close();
+    }
+  });
+
   it("throws HTTPStatusError by default", async () => {
     const server = http.createServer((req, res) => {
       res.statusCode = 500;
@@ -160,6 +176,78 @@ describe("integration: local http server", () => {
       await close();
     }
   });
+
+  it("withHeader/withAuth/withBaseUrl compose immutably", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.setHeader("content-type", "application/json");
+      res.end(
+        JSON.stringify({
+          a: req.headers["x-a"] ?? null,
+          auth: req.headers["authorization"] ?? null,
+        }),
+      );
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient()
+        .withBaseUrl(baseUrl)
+        .withHeader("x-a", "1")
+        .withAuth("TOKEN", { scheme: "Bearer" });
+
+      const body = await httpClient.get("/").unwrapJson<{ a: string; auth: string }>();
+      expect(body.a).toBe("1");
+      expect(body.auth).toBe("Bearer TOKEN");
+    } finally {
+      await close();
+    }
+  });
+
+  it("injects request id header when configured", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 200;
+      res.setHeader("content-type", "text/plain");
+      res.end(String(req.headers["x-request-id"] ?? ""));
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({
+        baseUrl,
+        tracing: {
+          requestIdHeader: "x-request-id",
+          generateRequestId: () => "RID-1",
+        },
+      });
+      const value = await httpClient.get("/").text();
+      expect(value).toBe("RID-1");
+    } finally {
+      await close();
+    }
+  });
+
+  it("HTTPStatusError includes requestId + body preview when available", async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 500;
+      res.setHeader("content-type", "text/plain; charset=utf-8");
+      res.end("server exploded");
+    });
+    const { baseUrl, close } = await listen(server);
+    try {
+      const httpClient = createHttpClient({
+        baseUrl,
+        tracing: { requestIdHeader: "x-request-id", generateRequestId: () => "RID-2" },
+      });
+      await httpClient.get("/").catch((e) => {
+        expect(e).toBeInstanceOf(HTTPStatusError);
+        const err = e as HTTPStatusError;
+        expect(err.requestId).toBe("RID-2");
+        expect(err.responseBodyPreview).toContain("server exploded");
+      });
+    } finally {
+      await close();
+    }
+  });
+
 
   it("times out slow responses (best-effort)", async () => {
     const server = http.createServer((req, res) => {

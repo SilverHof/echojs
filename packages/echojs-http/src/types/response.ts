@@ -29,4 +29,10 @@ export interface HttpResponse<TBody = unknown> {
   text(): Promise<string>;
   bytes(): Promise<Uint8Array>;
   arrayBuffer(): Promise<ArrayBuffer>;
+
+  /** Throws {@link HTTPStatusError} when not ok. */
+  assertOk(): void;
+
+  /** `assertOk()` + `json<T>()` */
+  unwrapJson<T = unknown>(): Promise<T>;
 }

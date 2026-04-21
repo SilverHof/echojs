@@ -127,6 +127,22 @@ const snap = publicApi.defaults;
 
 ---
 
+## 7.1 `withBaseUrl/withHeader/withAuth`: композиция инстансов
+
+`extend()` остаётся базовым механизмом, но для DX есть короткие immutable-методы:
+
+```ts
+const http = createHttpClient();
+
+const api = http.withBaseUrl("https://api.example.com");
+const authed = api.withAuth("TOKEN", { scheme: "Bearer" });
+const admin = authed.withHeader("x-role", "admin");
+
+const me = await admin.get("/me").unwrapJson();
+```
+
+---
+
 ## 8. Отмена запроса (`AbortSignal`)
 
 ```ts
@@ -246,6 +262,23 @@ const http = createHttpClient({
 
 ---
 
+## 13.1 Facade над hooks: `onRequest/onResponse/...`
+
+Это просто sugar над `hooks`, сохраняющий порядок и merge-семантику.
+
+```ts
+const http = createHttpClient({ baseUrl: "https://api.example.com" })
+  .onRequest(({ normalized }) => {
+    console.log("→", normalized.method, normalized.url);
+  })
+  .onError(({ error }) => {
+    console.error("err", error);
+    return error instanceof Error ? error : new Error(String(error));
+  });
+```
+
+---
+
 ## 14. `afterResponse`: контролируемый retry
 
 Хук может вернуть директиву `{ kind: "retry", delayMs?: number }`. Это приводит к внутреннему “контролируемому” retry и учитывает `retry.limit`.
@@ -334,6 +367,41 @@ try {
 ```
 
 ---
+
+## 17.1 Type guards для ошибок
+
+```ts
+import { isHttpError, isTimeoutError } from "@echojs/http";
+
+try {
+  await http.get("/x");
+} catch (e) {
+  if (isHttpError(e)) {
+    console.log(e.code, e.requestId, e.url);
+  }
+  if (isTimeoutError(e)) {
+    console.log("phase", e.phase);
+  }
+}
+```
+
+---
+
+## 19. requestId / tracing header (observability foundation)
+
+```ts
+const http = createHttpClient({
+  baseUrl: "https://api.example.com",
+  tracing: {
+    requestIdHeader: "x-request-id",
+    generateRequestId: () => "RID-123",
+    errorBodyPreviewBytes: 1024,
+  },
+});
+
+await http.get("/health");
+```
+
 
 ## 18. Подмена адаптера на один запрос
 

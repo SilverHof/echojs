@@ -14,6 +14,12 @@ export class HttpClientError extends Error {
   readonly timings?: HttpTimings | undefined;
   readonly retryCount: number;
   readonly context: Readonly<Record<string, unknown>>;
+  readonly requestId?: string | undefined;
+  readonly method?: string | undefined;
+  readonly url?: string | undefined;
+  readonly status?: number | undefined;
+  readonly headers?: Readonly<Record<string, string>> | undefined;
+  readonly responseBodyPreview?: string | undefined;
 
   constructor(
     message: string,
@@ -25,6 +31,12 @@ export class HttpClientError extends Error {
       timings?: HttpTimings;
       retryCount?: number;
       context?: Record<string, unknown>;
+      requestId?: string;
+      method?: string;
+      url?: string;
+      status?: number;
+      headers?: Record<string, string>;
+      responseBodyPreview?: string;
     },
   ) {
     super(message, opts.cause !== undefined ? { cause: opts.cause } : undefined);
@@ -35,6 +47,12 @@ export class HttpClientError extends Error {
     this.timings = opts.timings;
     this.retryCount = opts.retryCount ?? 0;
     this.context = Object.freeze({ ...opts.context });
+    this.requestId = opts.requestId;
+    this.method = opts.method ?? opts.request?.method;
+    this.url = opts.url ?? opts.request?.url;
+    this.status = opts.status ?? opts.response?.status;
+    this.headers = opts.headers ? Object.freeze({ ...opts.headers }) : undefined;
+    this.responseBodyPreview = opts.responseBodyPreview;
     if (opts.cause !== undefined) {
       (this as { cause?: unknown }).cause = opts.cause;
     }
